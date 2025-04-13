@@ -10,3 +10,5 @@ V1.1
 V1.2
   - Switched the in-memmory H2 database to a PosgreSQL database so the data is not removed after restarting the server
   - Filled the database with current Premier League teams
+V1.3
+  - Fixed the /id tag
