@@ -11,6 +11,9 @@ V1.1
 V1.2
   - Switched the in-memmory H2 database to a PosgreSQL database so the data is not removed after restarting the server
   - Filled the database with current Premier League teams
+
+V1.3/SpringBootCrud
+  - Added Player, Goals and Matches classes, controllers and repositories
     
-V1.3
+V1.4
   - Fixed the /id tag
