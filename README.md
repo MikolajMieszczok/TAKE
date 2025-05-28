@@ -17,3 +17,5 @@ V1.3/SpringBootCrud
     
 V1.4
   - Fixed the /id tag
+V1.5
+  - Fixed relations between entities
