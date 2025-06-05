@@ -2,6 +2,9 @@ package com.example.demo;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,7 +22,8 @@ public class Club {
     private String managerName;
     private String clubRecord;
     
-    @OneToMany(mappedBy = "club")
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL)//, cascade={CascadeType.ALL})
+    @JsonBackReference // Wcześniej JSON IGNORE ale nie działało dodawanie klubów z graczami
     private List<Player> players;
     
     public Club() {}

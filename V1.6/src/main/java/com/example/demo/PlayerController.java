@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/players")
 public class PlayerController {
+	
 	@Autowired
 	private PlayerRepository PlayerRepository;
 	
@@ -44,6 +45,7 @@ public class PlayerController {
                 player.setGoals(playerDetails.getGoals());
                 player.setAssists(playerDetails.getAssists());
                 player.setShirtNr(playerDetails.getShirtNr());
+                //player.setClub(playerDetails.getClub());
                 return ResponseEntity.ok(PlayerRepository.save(player));
             })
             .orElseGet(() -> ResponseEntity.notFound().build());

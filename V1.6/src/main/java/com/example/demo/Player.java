@@ -1,6 +1,7 @@
 package com.example.demo;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
@@ -20,8 +21,9 @@ public class Player {
     private Integer Assists;
     private Integer ShirtNr;
     
-    @ManyToOne
-    @JoinColumn(name = "club_id")
+    @ManyToOne(fetch= FetchType.LAZY) //nie wiem jak dziala dokonca 
+    @JoinColumn(name = "club_id") //kolumna nazywa się club id ale ma postman ma wysrane i trzeba odwoływać się po "club" :))
+    @JsonBackReference // wcześniej nic, teraz jest bo nie działało dodawanie graczy z club
     private Club club;
     
     @OneToMany(mappedBy="player")
@@ -30,13 +32,13 @@ public class Player {
     
     public Player() {}
 
-    public Player(String FirstName, String SecondName, List<Goal> Goals, Integer Assists, Integer ShirtNr, Club club) {
+    public Player(String FirstName, String SecondName, List<Goal> Goals, Integer Assists, Integer ShirtNr, Club _club) {
         this.FirstName = FirstName;
         this.LastName = SecondName;
         this.Goals = Goals;
         this.Assists = Assists;
         this.ShirtNr = ShirtNr;
-        this.club = club;
+        this.club = _club;
     }
    
 }
