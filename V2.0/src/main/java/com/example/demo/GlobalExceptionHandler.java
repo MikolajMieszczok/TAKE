@@ -2,6 +2,7 @@ package com.example.demo;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -10,6 +11,11 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleInvalidJson(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest().body("Invalid request format: " + ex.getMostSpecificCause().getMessage());
+    }
+	
 	@ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
         return new ResponseEntity<>(

@@ -23,6 +23,8 @@ public class ClubController {
     private ClubRepository ClubRepository;
     @Autowired
     private MatchRepository MatchRepository;
+    @Autowired
+    private PlayerRepository PlayerRepository;
 
     
 	@GetMapping
@@ -41,18 +43,69 @@ public class ClubController {
 	    return ResponseEntity.ok(new ClubDTO(club));
 	}
 	
-    @PostMapping
-    public ResponseEntity<?> createClub(@Valid @RequestBody Club club, BindingResult result) {
-        if (result.hasErrors()) {
-            List<String> errors = result.getAllErrors().stream()
-                    .map(ObjectError::getDefaultMessage)
-                    .toList();
-            return ResponseEntity.badRequest().body(errors);
-        }
+//    @PostMapping
+//    public ResponseEntity<?> createClub(@Valid @RequestBody Club club, BindingResult result) {
+//        if (result.hasErrors()) {
+//            List<String> errors = result.getAllErrors().stream()
+//                    .map(ObjectError::getDefaultMessage)
+//                    .toList();
+//            return ResponseEntity.badRequest().body(errors);
+//        }
+//
+//        Club saved = ClubRepository.save(club);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(new ClubDTO(saved));
+//    }
+	
+	@PostMapping
+	public ResponseEntity<?> createClub(@Valid @RequestBody Club club, BindingResult result) {
+		List<String> errors = new ArrayList<>();
 
-        Club saved = ClubRepository.save(club);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ClubDTO(saved));
-    }
+		if (result.hasErrors()) {
+		    errors.addAll(result.getAllErrors().stream()
+		            .map(ObjectError::getDefaultMessage)
+		            .toList());
+		}
+
+		List<Player> processedPlayers = new ArrayList<>();
+		List<Player> players = club.getPlayers();
+
+		if (players != null) {
+		    for (Player p : players) {
+		        if (p.getId() != null) {
+		            Optional<Player> existingOpt = PlayerRepository.findById(p.getId());
+		            if (existingOpt.isPresent()) {
+		                Player existing = existingOpt.get();
+		                existing.setClub(club);
+		                processedPlayers.add(existing);
+		            } else {
+		                errors.add("Player with id " + p.getId() + " does not exist");
+		            }
+		        } else {
+		            if (p.getFirstName() == null) {
+		                errors.add("First name is required for new players");
+		            }
+		            if (p.getLastName() == null) {
+		                errors.add("Last name is required for new players");
+		            }
+
+		            if (errors.isEmpty()) {
+		                p.setClub(club);
+		                processedPlayers.add(p);
+		            }
+		        }
+		    }
+		}
+
+		if (!errors.isEmpty()) {
+		    return ResponseEntity.badRequest().body(errors);
+		}
+
+		club.setPlayers(processedPlayers);
+		Club saved = ClubRepository.save(club);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(new ClubDTO(saved));
+	}
+	
     
     @PostMapping("/calculateResults")
     public ResponseEntity<?> calculateMatchResultsAndUpdateClubs() {

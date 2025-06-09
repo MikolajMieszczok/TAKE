@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,9 +27,11 @@ public class Match {
     private Long id;
 	
 	@NotNull(message = "Goals for Club A cannot be null")
+	@Min(value = 0, message = "Goals must be 0 or above")
     private Integer GoalsClubA;
 	
 	@NotNull(message = "Goals for Club B cannot be null")
+	@Min(value = 0, message = "Goals must be 0 or above")
     private Integer GoalsClubB;
 	
 	@NotNull(message = "Match date cannot be null")

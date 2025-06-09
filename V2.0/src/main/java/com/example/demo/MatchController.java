@@ -1,6 +1,8 @@
 package com.example.demo;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
@@ -19,6 +21,9 @@ public class MatchController {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Autowired
+    private ClubRepository clubRepository;
+       
     @GetMapping
     public @ResponseBody CollectionModel<MatchDTO> getAllMatches() {
         List<MatchDTO> matchesDTO = matchRepository.findAll()
@@ -43,6 +48,26 @@ public class MatchController {
     	            .map(ObjectError::getDefaultMessage)
     	            .toList();
     	        return ResponseEntity.badRequest().body(errors);
+    	}
+    	
+    	if(match.getClubA().getId() == match.getClubB().getId()) {
+    		return ResponseEntity.badRequest().body("Match cannot be played between same team");
+    	}
+    	
+    	List<String> nonExistingClubs = new ArrayList<>();
+    	
+    	Optional<Club> clubAOpt = clubRepository.findById(match.getClubA().getId());
+    	if (clubAOpt.isEmpty()) {
+    		nonExistingClubs.add("Club A with id " + match.getClubA().getId() + " does not exist");
+    	}
+    	
+    	Optional<Club> clubBOpt = clubRepository.findById(match.getClubB().getId());
+    	if (clubBOpt.isEmpty()) {
+    		nonExistingClubs.add("Club B with id " + match.getClubB().getId() + " does not exist");
+    	}
+    	
+    	if(!nonExistingClubs.isEmpty()) {
+    		return ResponseEntity.badRequest().body(nonExistingClubs);
     	}
     	
     	Match saved = matchRepository.save(match);
