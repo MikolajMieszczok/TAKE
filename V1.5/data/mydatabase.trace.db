@@ -1,0 +1,12 @@
+2025-03-19 13:38:11.122566+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CLUBS" not found (this database is empty); SQL statement:
+select c1_0.id_club,c1_0.club_name,c1_0.manager_name,c1_0.record from clubs c1_0 [42104-232]
+2025-03-19 13:38:23.679446+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CLUBS" not found (this database is empty); SQL statement:
+insert into clubs (club_name,manager_name,record,id_club) values (?,?,?,default) [42104-232]
+2025-03-19 13:40:13.697712+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CLUBS" not found (this database is empty); SQL statement:
+insert into clubs (club_name,manager_name,record,id_club) values (?,?,?,default) [42104-232]
+2025-03-19 13:44:47.064721+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "CLUBS" not found (this database is empty); SQL statement:
+insert into clubs (club_name,manager_name,record,id_club) values (?,?,?,default) [42104-232]
