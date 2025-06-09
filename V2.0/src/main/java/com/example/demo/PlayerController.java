@@ -93,7 +93,7 @@ public class PlayerController {
 		
 		Player saved = PlayerRepository.save(player);
 		
-		return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+		return ResponseEntity.status(HttpStatus.CREATED).body(new PlayerDTO(saved));
 	}
 	
 	@PutMapping("/{id}")
@@ -109,13 +109,22 @@ public class PlayerController {
     	        return ResponseEntity.badRequest().body(errors);
 	    }
 		
+		if(playerDetails.getClub().getId() != null) {
+		
+			ClubRepository.findById(playerDetails.getClub().getId())
+			.orElseThrow(() -> new ResourceNotFoundException("Club not found with id: " + playerDetails.getClub().getId()));
+			
+		}
+		
 	    player.setFirstName(playerDetails.getFirstName());
 	    player.setLastName(playerDetails.getLastName());
 	    player.setGoals(playerDetails.getGoals());
 	    player.setShirtNr(playerDetails.getShirtNr());
 	    player.setClub(playerDetails.getClub());
 
-	    return ResponseEntity.ok(PlayerRepository.save(player));
+	    Player saved = PlayerRepository.save(player);
+	    
+	    return ResponseEntity.ok(new PlayerDTO(saved));
 	}
 	
 	 @DeleteMapping

@@ -142,16 +142,18 @@ public class ClubController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateClub(@PathVariable("id") Long id, @RequestBody Club clubDetails, BindingResult result) {
-        Club club = ClubRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Club not found with id: " + id));
-
+    public ResponseEntity<?> updateClub(@PathVariable("id") Long id, @Valid @RequestBody Club clubDetails, BindingResult result) {
+       
         if (result.hasErrors()) {
             List<String> errors = result.getAllErrors().stream()
                     .map(ObjectError::getDefaultMessage)
                     .toList();
             return ResponseEntity.badRequest().body(errors);
         }
+    	
+    	Club club = ClubRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Club not found with id: " + id));
+
         
         club.setClubName(clubDetails.getClubName());
         club.setManagerName(clubDetails.getManagerName());

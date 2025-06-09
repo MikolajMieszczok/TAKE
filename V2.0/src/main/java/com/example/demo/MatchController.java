@@ -94,7 +94,7 @@ public class MatchController {
 
     	    if (!match.getClubA().getId().equals(matchDetails.getClubA().getId()) ||
     	        !match.getClubB().getId().equals(matchDetails.getClubB().getId())) {
-    	        return ResponseEntity.badRequest().body("Matches cannot be changed.");
+    	        return ResponseEntity.badRequest().body("Clubs cannot be changed.");
     	    }
 
     	    match.setGoalsClubA(matchDetails.getGoalsClubA());
