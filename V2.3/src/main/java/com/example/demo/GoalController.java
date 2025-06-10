@@ -11,10 +11,17 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/goals")
+@Tag(name = "Goal Management", description = "Endpoints for managing match goals")
 public class GoalController {
 
     @Autowired
@@ -26,6 +33,10 @@ public class GoalController {
     @Autowired
     private MatchRepository matchRepository;
 
+    @Operation(summary = "Get all goals", description = "Retrieves a list of all goals scored in matches")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of goals",
+            content = @Content(mediaType = "application/json", 
+            schema = @Schema(implementation = GoalDTO.class)))
     @GetMapping
     public @ResponseBody CollectionModel<GoalDTO> getGoals() {
         List<GoalDTO> goalsDTO = goalRepository.findAll()
@@ -35,24 +46,48 @@ public class GoalController {
         return CollectionModel.of(goalsDTO);
     }
 
+    @Operation(summary = "Get goal by ID", description = "Retrieves a specific goal by its ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved goal",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = GoalDTO.class))),
+        @ApiResponse(responseCode = "404", description = "Goal not found",
+                content = @Content)
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<GoalDTO> getById(@PathVariable("id") Long id) {
+    public ResponseEntity<GoalDTO> getById(
+            @Parameter(description = "ID of the goal to be retrieved", required = true)
+            @PathVariable("id") Long id) {
         Goal goal = goalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Goal not found with id: " + id));
         return ResponseEntity.ok(new GoalDTO(goal));
     }
 
+    @Operation(summary = "Create a new goal", 
+            description = "Creates a new goal record and updates the corresponding match score")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Goal created successfully",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = GoalDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data or player not in match",
+                content = @Content),
+        @ApiResponse(responseCode = "404", description = "Player or match not found",
+                content = @Content)
+    })
     @PostMapping
-    public ResponseEntity<?> createGoal(@Valid @RequestBody Goal goal, BindingResult result) {
+    public ResponseEntity<?> createGoal(
+            @Parameter(description = "Goal object to be created", required = true,
+                    schema = @Schema(implementation = Goal.class))
+            @Valid @RequestBody Goal goal, BindingResult result) {
         
-    	if(result.hasErrors()) {
-    		List<String> errors = result.getAllErrors().stream()
-    	            .map(ObjectError::getDefaultMessage)
-    	            .toList();
-    	        return ResponseEntity.badRequest().body(errors);
-    	}
-    	
-    	Player player = playerRepository.findById(goal.getPlayer().getId())
+        if(result.hasErrors()) {
+            List<String> errors = result.getAllErrors().stream()
+                    .map(ObjectError::getDefaultMessage)
+                    .toList();
+                return ResponseEntity.badRequest().body(errors);
+        }
+        
+        Player player = playerRepository.findById(goal.getPlayer().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Player not found with id: " + goal.getPlayer().getId()));
         Match match = matchRepository.findById(goal.getMatch().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Match not found with id: " + goal.getMatch().getId()));
@@ -83,9 +118,24 @@ public class GoalController {
         return ResponseEntity.ok(new GoalDTO(savedGoal));
     }
     
+    @Operation(summary = "Update goal details", 
+            description = "Updates the minute and ownGoal flag of a goal. Player and match cannot be changed.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Goal updated successfully",
+                content = @Content(mediaType = "application/json", 
+                schema = @Schema(implementation = GoalDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Invalid input data or attempt to change player/match",
+                content = @Content),
+        @ApiResponse(responseCode = "404", description = "Goal not found",
+                content = @Content)
+    })
     @PutMapping("/{id}")
-    @Operation(summary = "Update goal details", description = "Updates the minute and ownGoal flag (player and match cannot be changed)")
-    public ResponseEntity<?> updateGoal(@PathVariable("id") Long id, @Valid @RequestBody Goal goalDetails, BindingResult result) {
+    public ResponseEntity<?> updateGoal(
+            @Parameter(description = "ID of the goal to be updated", required = true)
+            @PathVariable("id") Long id, 
+            @Parameter(description = "Updated goal details (only minute and ownGoal can be changed)", required = true,
+                    schema = @Schema(implementation = Goal.class))
+            @Valid @RequestBody Goal goalDetails, BindingResult result) {
         Goal existingGoal = goalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Goal not found with id: " + id));
 
@@ -139,8 +189,19 @@ public class GoalController {
     }
     
 
+    @Operation(summary = "Delete goal", 
+            description = "Deletes a goal and updates the corresponding match score")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Goal deleted successfully"),
+        @ApiResponse(responseCode = "400", description = "Player does not belong to match clubs",
+                content = @Content),
+        @ApiResponse(responseCode = "404", description = "Goal, player or match not found",
+                content = @Content)
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteGoal(@PathVariable("id") Long id) {
+    public ResponseEntity<?> deleteGoal(
+            @Parameter(description = "ID of the goal to be deleted", required = true)
+            @PathVariable("id") Long id) {
         Goal goal = goalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Goal not found with id: " + id));
         
@@ -175,16 +236,18 @@ public class GoalController {
         return ResponseEntity.noContent().build();
     }
     
+    @Operation(summary = "Delete all goals", 
+            description = "Deletes all goals and resets all match scores to 0-0")
+    @ApiResponse(responseCode = "204", description = "All goals deleted and match scores reset")
     @DeleteMapping
     public ResponseEntity<?> deleteAllGoals() {
-
-    	for(Match match : matchRepository.findAll()) {
-    		match.setGoalsClubA(0);
-    		match.setGoalsClubB(0);
-    		matchRepository.save(match);
-    	}
-    	
+        for(Match match : matchRepository.findAll()) {
+            match.setGoalsClubA(0);
+            match.setGoalsClubB(0);
+            matchRepository.save(match);
+        }
+        
+        goalRepository.deleteAll();
         return ResponseEntity.noContent().build();
     }
-    
 }
